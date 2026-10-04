@@ -1,50 +1,8 @@
-=============================== READ BEFORE USING ===============================
-PLACEHOLDER NOTICE (written by Claude, the AI assistant that built this repo):
-
-This file's narrative was NOT produced by a live Gemini API call. The sandbox
-this repo was built in has no network route to Google's API and no configured
-GEMINI_API_KEY, so generate_narrative.py's online path could not actually be
-exercised here (you can see it fail over to the offline path if you run the
-script in this same kind of environment). The text below was written by Claude
-to demonstrate the expected shape, tone, and numeric accuracy of a real Gemini
-response, and to give check_numeric_accuracy() something real to validate.
-
-Before you submit this project, replace everything below the line of "="
-signs with genuine output: run
-
-    export GEMINI_API_KEY=your_free_aistudio_key_here
-    python narrator/generate_narrative.py
-
-confirm the printed status is "success" (not a fallback to the offline path),
-and paste the narrative text it prints in place of everything below. Then
-re-run the script -- it will read this file and check it automatically.
-===================================================================================
-
 Situation
-Mamaearth's returns analytics pipeline has now been fully reconciled: after cleaning
-the raw order extract, verified revenue for the audited period stands at Rs.97,358.30,
-down from an unreconciled raw figure of Rs.99,860.20.
+Mamaearth's Growth Analytics team closed the books on this order set at Rs.97,358.30 in verified, cleaned revenue, after removing data-entry noise from the raw Rs.99,860.20 extract.
 
 Complication
-That gap is a data quality story, not a demand story: Rs.2,501.90 of the raw total came
-from duplicate order submissions that were caught and removed during cleaning. The more
-pressing issue is returns. Cash-on-Delivery orders return at 44.4% overall, far above
-14.7% for Card and 18.9% for UPI -- and the problem is sharper than that blended number
-suggests. Segmented by city tier, COD orders placed in city_tier 2 cities return at
-54.5%, the single highest-risk combination in the entire dataset, meaning the COD
-return problem is disproportionately a Tier-2 phenomenon rather than a uniform national
-one. Timing analysis adds a further wrinkle: January 2026 looks like the strongest
-revenue month at Rs.29,582.10, but that figure is inflated by two unusually large bulk
-orders. Strip those two orders out and January falls to Rs.11,637.10, while March 2026
-emerges as the real peak month at Rs.20,318.90.
+Two issues are eating into that number. First, a batch of duplicate order submissions inflated the raw revenue figure by Rs.2,501.90 -- a data-quality gap, not real demand -- which is why the cleaned total sits below the raw one. Second, and commercially more urgent: returns are concentrated, not evenly spread. Cash-on-Delivery (COD) orders return at 44.4%, versus 14.7% for Card and 18.9% for UPI -- and within COD the risk is not uniform either: COD orders in city_tier 2 cities return at 54.5%, the single highest-risk segment in the business. Separately, one month that looked like the revenue peak was an artifact: January 2026 appeared to lead at Rs.29,582.10, but once two outsized bulk orders are excluded it falls to Rs.11,637.10, revealing March 2026 as the true peak month at Rs.20,318.90.
 
 Resolution
-Three actions follow directly from these numbers. First, regional ops should treat
-COD orders from city_tier 2 cities as the priority intervention point -- at 54.5%
-returned, tightening COD acceptance there (partial prepayment, address verification,
-or caps on high-return SKUs) will move the overall return rate more than any
-across-the-board COD policy change. Second, finance should log the Rs.2,501.90
-duplicate-order gap as a checkout bug to fix at the source, not as lost revenue to
-plan around. Third, forecasting and monthly targets should be re-anchored to March
-2026's Rs.20,318.90 as the genuine peak, rather than the outlier-driven January figure,
-so future quotas aren't set against a one-off spike that will not repeat.
+Regional ops should prioritize tightening COD acceptance in city_tier 2 markets first -- that segment alone returns at 54.5%, well above the 44.4% blended COD rate, so a targeted fix (partial prepayment, delivery-time verification, or COD caps on high-return SKUs) will move the number further than a blanket COD policy change. Finance should treat the Rs.2,501.90 duplicate-order gap as a checkout/submission bug to fix at the source, not a revenue loss to absorb, and should re-baseline monthly targets on March 2026's Rs.20,318.90 rather than the outlier-inflated January 2026 figure, so future forecasts are not anchored to a one-off spike.
