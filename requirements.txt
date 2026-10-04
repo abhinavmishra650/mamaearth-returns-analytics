@@ -1,0 +1,6 @@
+pandas>=2.0
+matplotlib>=3.7
+
+# Optional -- only needed for the online path in narrator/generate_narrative.py.
+# The offline path (default when no API key is set) needs none of this.
+google-genai>=1.0
