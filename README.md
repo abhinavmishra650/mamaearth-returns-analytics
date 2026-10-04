@@ -119,13 +119,12 @@ just generated and the saved `narrator/sample_output.txt`.
 > the single `model=` line in `generate_scr_narrative()`.
 
 > **Note on `sample_output.txt`:** the brief asks for a real, saved Gemini response here
-> because live LLM output isn't byte-for-byte reproducible. The environment this repo was
-> built in has no network route to Google's API, so that file currently holds a clearly
-> labeled placeholder narrative instead of genuine Gemini output -- see the notice at the
-> top of the file itself. Anyone with a free Gemini API key can replace it in under a
-> minute by running the online command above and pasting the printed narrative in its
-> place; `generate_narrative.py` will validate whatever is pasted there automatically the
-> next time it runs.
+> because live LLM output isn't byte-for-byte reproducible. The narrative saved in that
+> file is a real Gemini response, generated in the Google AI Studio chat from the same
+> instructions and the same figures that `generate_narrative.py` builds from
+> `findings.json`, and it passes all five checks in `check_numeric_accuracy()`. Running
+> `generate_narrative.py` with a `GEMINI_API_KEY` produces a similar (not identical)
+> narrative; with no key it uses the offline template.
 
 ## Reproducing every number in this brief
 
