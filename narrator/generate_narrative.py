@@ -4,8 +4,10 @@ Turns the verified findings in narrator/findings.json (written by
 analysis/clean_and_eda.py) into a Situation-Complication-Resolution business
 narrative for Mamaearth's regional ops and finance heads.
 
-Two paths, same return shape ({"status", "narrative", "tokens"} or
-{"status": "error", "narrative": None, "message"}):
+Two paths, same return shape ({"status", "narrative", "tokens", "source"} or
+{"status": "error", "narrative": None, "message"}), where "source" is either
+"online" or "offline" so callers (and __main__, below) can tell which path
+actually produced a given narrative:
   - Online:  uses the free-tier Gemini API via the google-genai client.
   - Offline: a fully deterministic f-string template, zero network/API key.
 
@@ -16,9 +18,14 @@ always returns a usable narrative with zero required setup.
 
 Run directly:  python narrator/generate_narrative.py
   - With GEMINI_API_KEY (or GOOGLE_API_KEY) set in the environment: calls
-    the live Gemini API.
+    the live Gemini API, and if that call succeeds, automatically OVERWRITES
+    narrator/sample_output.txt with the real response -- no manual copy/paste
+    into that file is needed. This is how Task 5's "run it at least once,
+    paste the actual output into narrator/sample_output.txt" step is meant to
+    be satisfied: run this script once with a real key, and it does the
+    pasting itself.
   - With no key set: runs the offline path only -- no network call is even
-    attempted.
+    attempted, and sample_output.txt is left untouched.
 """
 
 import calendar
@@ -31,7 +38,7 @@ def _findings_path():
 
 
 def load_findings() -> dict:
-    with open(_findings_path()) as f:
+    with open(_findings_path(), encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -102,35 +109,59 @@ def generate_scr_narrative(findings: dict) -> dict:
 
         client = genai.Client(
             api_key=api_key,
-            # timeout is in milliseconds; 15000ms = 15s, comfortably over the taught >=10s minimum.
-            http_options=types.HttpOptions(timeout=15000),
+            # timeout is in milliseconds; 120000ms = 120s, well over the taught >=10s minimum. Current
+            # Gemini models "think" before answering, which can take longer than a few seconds.
+            http_options=types.HttpOptions(timeout=120000),
         )
-        response = client.models.generate_content(
-            # A Google-maintained "latest" alias (not a dated string like gemini-2.5-flash) so this
-            # keeps working as Google rotates the specific model behind it, and it stays on the
-            # free-tier-eligible Flash line -- see README for how to override it.
-            model="gemini-flash-latest",
-            contents=_build_user_prompt(findings),
-            config=types.GenerateContentConfig(
+
+        def _ask(low_thinking: bool):
+            config_args = dict(
                 system_instruction=SYSTEM_INSTRUCTION,
                 # Deterministic on purpose: this is a factual business report restating numbers
                 # already verified in Parts 1-2, not creative writing, so we want the least sampling
                 # variance generate_content allows, not creative diversity.
                 temperature=0.0,
-                # Must be explicit per the brief; >=300 and enough for a ~250-word, 3-section narrative.
-                max_output_tokens=500,
-            ),
-        )
+                # Must be explicit per the brief (>=300). Set well above the ~400 tokens a 250-word
+                # narrative needs because current Gemini models spend part of this same budget on
+                # internal "thinking" tokens -- a tight limit can leave no room for the answer itself.
+                max_output_tokens=4096,
+            )
+            if low_thinking:
+                # A simple write-up from supplied figures needs little reasoning: keep it fast and cheap.
+                config_args["thinking_config"] = types.ThinkingConfig(thinking_level="low")
+            return client.models.generate_content(
+                # A Google-maintained "latest" alias (not a dated string like gemini-2.5-flash) so this
+                # keeps working as Google rotates the specific model behind it, and it stays on the
+                # free-tier-eligible Flash line -- see README for how to override it.
+                model="gemini-flash-latest",
+                contents=_build_user_prompt(findings),
+                config=types.GenerateContentConfig(**config_args),
+            )
+
+        try:
+            response = _ask(low_thinking=True)
+        except Exception as first_err:  # noqa: BLE001
+            # Only retry when the model/SDK rejected the thinking setting; any other failure
+            # (bad key, no quota, no network) is real and should surface to the except below.
+            if "thinking" not in str(first_err).lower():
+                raise
+            response = _ask(low_thinking=False)
+
         text = (response.text or "").strip()
         if not text:
-            raise ValueError("Gemini API returned an empty response.")
+            reason = None
+            try:
+                reason = response.candidates[0].finish_reason
+            except Exception:  # noqa: BLE001
+                pass
+            raise ValueError(f"Gemini API returned an empty response (finish_reason={reason}).")
 
         tokens = None
         usage = getattr(response, "usage_metadata", None)
         if usage is not None:
             tokens = getattr(usage, "total_token_count", None)
 
-        online_result = {"status": "success", "narrative": text, "tokens": tokens}
+        online_result = {"status": "success", "narrative": text, "tokens": tokens, "source": "online"}
 
     except Exception as err:  # noqa: BLE001 -- the caller must never receive a raw exception
         online_result = {"status": "error", "narrative": None, "message": str(err)}
@@ -180,7 +211,20 @@ def generate_scr_narrative_offline(findings: dict) -> dict:
         f"rather than the outlier-inflated {_month_name(inflated['month'])} figure, so future forecasts are not "
         "anchored to a one-off spike."
     )
-    return {"status": "success", "narrative": narrative, "tokens": None}
+    return {"status": "success", "narrative": narrative, "tokens": None, "source": "offline"}
+
+
+# ---------------------------------------------------------------------------
+# Auto-save: whenever the ONLINE path genuinely succeeds, write its narrative
+# straight into narrator/sample_output.txt, replacing the placeholder. This
+# is what makes Task 5's "paste the actual output into sample_output.txt"
+# step happen automatically instead of by hand -- see module docstring.
+# ---------------------------------------------------------------------------
+def _save_as_sample_output(narrative: str) -> str:
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_output.txt")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(narrative.strip() + "\n")
+    return path
 
 
 # ---------------------------------------------------------------------------
@@ -217,6 +261,7 @@ if __name__ == "__main__":
     print("=" * 78)
     result = generate_scr_narrative(findings)
     print(f"status: {result['status']}")
+    print(f"source: {result.get('source')}")
     print(f"tokens: {result.get('tokens')}")
     print("\n--- narrative ---\n")
     print(result["narrative"])
@@ -226,12 +271,25 @@ if __name__ == "__main__":
     print("=" * 78)
     check_numeric_accuracy(result["narrative"])
 
+    if result.get("source") == "online":
+        saved_path = _save_as_sample_output(result["narrative"])
+        print(f"\n[generate_narrative] Online Gemini call succeeded -- saved this exact narrative to "
+              f"{os.path.relpath(saved_path)} automatically. That file now holds a genuine, saved "
+              "Gemini response, per Task 5 -- nothing left to copy/paste by hand.")
+
     sample_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_output.txt")
     if os.path.exists(sample_path):
         print("\n" + "=" * 78)
         print("Task 5: numeric accuracy checklist -- saved narrator/sample_output.txt")
         print("=" * 78)
-        with open(sample_path) as f:
+        with open(sample_path, encoding="utf-8") as f:
             saved_text = f.read()
         passed = check_numeric_accuracy(saved_text)
         print(f"\nOverall: {'PASS' if passed else 'FAIL'}")
+
+    print("\n" + "#" * 78)
+    if result.get("source") == "online":
+        print("RESULT: SUCCESS -- this is a real Gemini answer, and it was saved to narrator/sample_output.txt")
+    else:
+        print("RESULT: OFFLINE -- Gemini was NOT reached (see the message near the top). Nothing was saved.")
+    print("#" * 78)

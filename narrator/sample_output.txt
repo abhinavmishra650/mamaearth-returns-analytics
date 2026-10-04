@@ -1,34 +1,11 @@
-Situation
+**Situation**  
+Mamaearth’s regional operations and finance teams are managing an adjusted revenue base of Rs.97,358.30, down from a raw total revenue of Rs.99,860.20. While initial sales reporting suggested January 2026 was the top-performing period at Rs.29,582.10, removing two bulk-order outliers adjusts that month down to Rs.11,637.10. Instead, operational demand reached its true peak in March 2026 at Rs.20,318.90, which serves as our actual operational benchmark for regional capacity and planning.
 
-Mamaearth’s regional performance requires an accurate view of operational
-demand. Our raw (pre-cleaning) total revenue stood at Rs.99,860.20, but
-accounting for transactional anomalies establishes our cleaned total revenue at
-Rs.97,358.30. Core sales trends were previously obscured by anomalous wholesale
-activity: January 2026 looked like Rs.29,582.10 but is actually Rs.11,637.10
-once the two bulk-order outliers are excluded. With these adjustments, the true
-peak month once bulk-order outliers are excluded was March 2026 at Rs.20,318.90.
+**Complication**  
+Our bottom-line margins are actively eroded by fulfillment failures and transactional data gaps. Return rates vary dramatically across payment methods: CARD orders see a 14.7% return rate and UPI orders sit at 18.9%, whereas Cash on Delivery (COD) surges to 44.4%. Risk is most concentrated among COD orders in city_tier 2 cities, where returns hit a critical 54.5%. Compounding this operational friction is a data-quality gap: duplicate orders created a reconciliation delta of Rs.2,501.90, distorting top-line cash flow visibility across regional accounts.
 
-Complication
-
-Operational efficiency and margins are severely undermined by order returns and
-data-capture issues. Looking at customer behavior, the return rate by payment
-method demonstrates significant variance: COD 44.4%, UPI 18.9%, and CARD 14.7%.
-This fulfillment risk is heavily localized, with our highest-risk segment being
-COD orders in city_tier 2 cities, where 54.5% returned. Compounding these
-fulfillment losses, data-pipeline errors generated a duplicate-order
-reconciliation delta of Rs.2,501.90, artificially inflating our uncleaned
-revenue figures and complicating financial close.
-
-Resolution
-
-Regional operations and finance leaders should take immediate joint action this
-week:
-
-  - Implement mandatory customer pre-dispatch confirmation for COD orders in
-    city_tier 2 cities to mitigate reverse-logistics costs, while driving
-    customer adoption toward prepaid payment methods.
-  - Audit ingestion pipelines between our checkout portal and core ledger to
-    prevent order duplication and book the duplicate-order reconciliation delta.
-  - Align regional inventory planning and dispatch staffing to baseline demand
-    patterns established in March 2026, avoiding resource misallocation caused
-    by outlier-inflated sales figures from January 2026.
+**Resolution**  
+Regional operations and finance leaders should take immediate action this week:
+1. **Restrict High-Risk COD**: Mandate partial digital prepayments or automated phone verifications for COD orders in city_tier 2 cities to address the 54.5% return rate, while shifting fulfillment preference toward UPI and CARD channels.
+2. **Reconcile Duplicate Transactions**: Finance must immediately book the Rs.2,501.90 duplicate-order reconciliation delta and implement transactional deduplication blocks at order capture.
+3. **Calibrate Regional Targets**: Align supply chain inventory and working capital models to the verified March 2026 baseline of Rs.20,318.90 rather than the distorted figures seen in January 2026.
