@@ -120,11 +120,11 @@ just generated and the saved `narrator/sample_output.txt`.
 
 > **Note on `sample_output.txt`:** the brief asks for a real, saved Gemini response here
 > because live LLM output isn't byte-for-byte reproducible. The narrative saved in that
-> file is a real Gemini response, generated in the Google AI Studio chat from the same
-> instructions and the same figures that `generate_narrative.py` builds from
-> `findings.json`, and it passes all five checks in `check_numeric_accuracy()`. Running
-> `generate_narrative.py` with a `GEMINI_API_KEY` produces a similar (not identical)
-> narrative; with no key it uses the offline template.
+> file is a real Gemini response: it was produced by running `generate_narrative.py`
+> with a free Gemini API key, and the script saved its own output there. It passes all
+> five checks in `check_numeric_accuracy()`. Running the script again with a
+> `GEMINI_API_KEY` gives a similar (not identical) narrative; with no key it uses the
+> offline template.
 
 ## Reproducing every number in this brief
 
