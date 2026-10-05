@@ -104,7 +104,7 @@ python narrator/generate_narrative.py
 
 `generate_scr_narrative()` in `generate_narrative.py` is the single entry point: it checks
 for `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) and calls the live Gemini API
-(`temperature=0.0`, an explicit `max_output_tokens`, a 15-second timeout, the whole call
+(`temperature=0.0`, an explicit `max_output_tokens`, a 120-second timeout, the whole call
 wrapped in `try/except`) when a key is present, and **automatically falls back** to
 `generate_scr_narrative_offline()` -- a zero-network, zero-key, f-string template built
 directly from `findings.json` -- whenever no key is configured or the online call fails
